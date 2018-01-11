@@ -19,9 +19,9 @@ public class IDEA_encoding {
 	private static HashMap<String, String> binary_to_char = new HashMap<String, String>();
 	
 	/**
-	 * 
-	 * @param bin_val
-	 * @return
+	 * Converts from an 8-bit binary string to its UTF-8 character mapping
+	 * @param bin_val: 8-bit binary string
+	 * @return the UTF-8 character bin_val maps to
 	 */
 	public String get_str(String bin_val) {
 		if (!binary_to_char.containsKey(bin_val)) {
@@ -31,9 +31,9 @@ public class IDEA_encoding {
 	}
 	
 	/**
-	 * 
-	 * @param str_val
-	 * @return
+	 * Converts from a UTF-8 character to it's 8-bit binary mapping
+	 * @param str_val: UTF-8 character 
+	 * @return the 8-bit binary value str_val maps to
 	 */
 	public String get_bin(String str_val) {
 		if (!char_to_binary.containsKey(str_val)) {
@@ -43,7 +43,10 @@ public class IDEA_encoding {
 	}
 	
 	/**
-	 * 
+	 * Constructs two maps with functions:
+	 * 		1. To convert from a UTF-8 character to an 8-bit binary string
+	 * 		2. To convert from an 8-bit binary string to a UTF-8 character
+	 * The mappings are determined by the data in the file IDEA_text_encoding.txt
 	 */
 	private static void construct_maps() {
 		// Read and parse from the file
@@ -101,6 +104,7 @@ public class IDEA_encoding {
 							break;
 						}
 						
+						// check for duplicate mappings 
 						if (char_to_binary.containsKey(str_val)) {
 							System.out.printf("%d: Wrong value! %s is already mapped!\n",enc_val, str_val);
 							break;

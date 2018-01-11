@@ -1,7 +1,4 @@
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -81,10 +78,11 @@ public class IDEA {
 	
 	public static Scanner in;
 	public static String data;
-	public static String format;
+	public static String data_format;
+	public static String key_format;
 	public static String op;
 	public static String output;
-	public static BigInteger key;
+	public static String key;
 	
 	// initialize the encoding object to convert between text and binary
 	public static IDEA_encoding encodings = new IDEA_encoding();
@@ -110,8 +108,8 @@ public class IDEA {
 	/**
 	 * prints a 128-bit representation of the key
 	 */
-	public static void print_key() {
-		byte[] key_bytes = key.toByteArray();
+	public static void print_key(BigInteger key_int) {
+		byte[] key_bytes = key_int.toByteArray();
 		StringBuilder binary_key_bytes = new StringBuilder();
 		for (int i = 0; i < key_bytes.length; i++) {
 			String binary_bytes = String.format("%8s", Integer.toBinaryString(key_bytes[i]));
@@ -142,8 +140,8 @@ public class IDEA {
 	public static void get_info() {
 		in = new Scanner(System.in);
 		get_op();
-		get_text();
 		get_key();
+		get_text();
 		in.close();
 	}
 	
@@ -187,6 +185,150 @@ public class IDEA {
 	}
 	
 	/**
+	 * gets the key to be used for encryption from the user
+	 */
+	public static void get_key() {
+		get_key_format();
+		process_key();
+	}
+	
+	/**
+	 * Gets the key input format from the user
+	 */
+	public static void get_key_format() {
+		String format_str = "";
+		
+		// while loop to collect the user input
+		while (true) {
+			// print the information and user prompt
+			System.out.printf("What format is the key in?\n");
+			System.out.printf("\t -Type 'bin' for binary\n");
+			System.out.printf("\t -Type 'hex' for hexadecimal\n");
+			System.out.printf("\t -Type 'txt' for alphanumeric text\n");
+			System.out.printf("Key format: ");
+			
+			try {
+				// scan the input
+				format_str = in.next();
+				
+				//trim the input string and convert to lower case
+				format_str = format_str.toLowerCase();
+				format_str = format_str.trim();
+				
+				if (format_str.equalsIgnoreCase("bin") ||
+					format_str.equalsIgnoreCase("hex") ||
+					format_str.equalsIgnoreCase("txt")) {
+					key_format = format_str;
+					break;
+				}
+				else {
+					System.out.println("Please enter one of the responses listed!");
+				}
+			}
+			catch (NumberFormatException e) {
+				//clear_console();
+				System.out.println("Please enter one of the responses listed!");
+			}
+		}
+	}
+	
+	/**
+	 * Takes the key input and converts it to a base 2 binary string
+	 */
+	public static void process_key() {		
+		String key_input = "";
+		
+		// trash the new line
+		in.nextLine();
+		
+		// print the information and user prompt
+		System.out.printf("Enter the key to use to %srypt: ", op);
+		
+		// while loop to collect the user input
+		while (true) {
+			try {
+				// scan the input
+				key_input = in.nextLine();
+				
+				//trim the input string 
+				key_input = key_input.trim();
+				key = key_input;
+				break;
+			
+			}
+			catch (NumberFormatException e) {
+				//clear_console();
+				System.out.println("Error retrieving key from the user!");
+				// print the information and user prompt
+				System.out.printf("Enter the key to use to %srypt: ", op);
+			}
+		}
+		
+		// handle the binary input case
+		if (key_format.equalsIgnoreCase("bin")) {
+			// no processing necessary
+			key = key.replace(' ', '0');
+			// format the key with correct length
+			while (key.length() % 128 != 0) {
+				key = "0" + key;
+			}
+
+			//System.out.printf("key in: %s\n", key);
+		}
+		
+		// handle the hex input case
+		if (key_format.equalsIgnoreCase("hex")) {
+			// convert the input string to upper case 
+			key = key.toUpperCase();
+			//System.out.printf("key in: %s\n", key);
+			
+			// Loop through each hex character, generate binary string
+			StringBuilder hex_append = new StringBuilder();
+			for (int i = 0; i < key.length(); i++) {
+				// convert the hex character to it's integer value
+				String hex_str = key.substring(i, i + 1);
+				int val = Integer.parseInt(hex_str, 16);
+				// convert the integer to it's 4-bit binary representation
+				hex_str = String.format("%4s", Integer.toBinaryString(val));
+				hex_str = hex_str.replace(' ', '0');
+				// append to the StringBuilder
+				hex_append.append(hex_str);
+				
+			}
+			key = hex_append.toString();
+			// format the key with correct length
+			while (key.length() % 128 != 0) {
+				key = "0" + key;
+			}
+		}
+		
+		// handle the alphanumeric input case using encoding object
+		if (key_format.equalsIgnoreCase("txt")) {
+			// format the key with correct length 
+			while (key.length() % 16 != 0) {
+				key = "0" + key;
+			}
+			//System.out.printf("key in: %s\n", key);
+			
+			StringBuilder key_bin = new StringBuilder();
+			for (int i = 0; i < key.length(); i++) {	
+				String key_str = key.substring(i, i + 1);
+				String bin_str = encodings.get_bin(key_str);
+				key_bin.append(bin_str);
+			}
+			key = key_bin.toString();
+		}
+		
+		// make sure key is proper length
+		if (key.length() > 128) {
+			key = key.substring(0, 128);
+		}
+		if (key.length() < 128) {
+			System.out.printf("Key should be 128 bits! Currently only %d\n", key.length());
+		}
+	}
+	
+	/**
 	 * gets the text to be encrypted/decrypted from the user
 	 */
 	public static void get_text() {
@@ -221,7 +363,7 @@ public class IDEA {
 				if (format_str.equalsIgnoreCase("bin") ||
 					format_str.equalsIgnoreCase("hex") ||
 					format_str.equalsIgnoreCase("txt")) {
-					format = format_str;
+					data_format = format_str;
 					break;
 				}
 				else {
@@ -274,7 +416,7 @@ public class IDEA {
 	public static void process_data() {		
 		
 		// handle the binary input case
-		if (format.equalsIgnoreCase("bin")) {
+		if (data_format.equalsIgnoreCase("bin")) {
 			// no processing necessary
 			data = data.replace(' ', '0');
 			
@@ -285,9 +427,13 @@ public class IDEA {
 		}
 		
 		// handle the hex input case
-		if (format.equalsIgnoreCase("hex")) {
-			// convert the input string to upper case 
-			data = data.toUpperCase();	
+		if (data_format.equalsIgnoreCase("hex")) {
+			// convert the input string to lower case 
+			data = data.toLowerCase();
+			// format the data correctly
+			while (data.length() % 16 != 0) {
+				data = "0" + data;
+			}
 			System.out.printf("data in: %s\n", data);
 			
 			// Loop through each hex character, generate binary string
@@ -307,7 +453,7 @@ public class IDEA {
 		}
 		
 		// handle the alphanumeric input case using encoding object
-		if (format.equalsIgnoreCase("txt")) {
+		if (data_format.equalsIgnoreCase("txt")) {
 			// format the data correctly 
 			while (data.length() % 8 != 0) {
 				data = "0" + data;
@@ -325,29 +471,6 @@ public class IDEA {
 	}
 	
 	/**
-	 * gets the key to be used for encryption from the user
-	 */
-	public static void get_key() {
-		// While loop to collect the 128-bit key
-		while (true) {
-			System.out.printf("128-bit key used to %srypt: ", op);
-			try {
-				key = in.nextBigInteger();
-				if (key.bitLength() > 128) {
-					System.out.println("Key must be less than 128 bits!");
-				}
-				else {
-					break;
-				}
-			}
-			catch (NumberFormatException e) {
-				//clear_console();
-				System.out.println("Key must be less than 128 bits!");
-			}
-		}
-	}
-	
-	/**
 	 * Pads the input data so it's a bit-string with length divisible by 64.
 	 * Calls the method to process encryption or decryption depending upon 
 	 * @param op type.
@@ -355,7 +478,7 @@ public class IDEA {
 	public static void process_out() {
 		int pad_num = 64 - (data.length() % 64);
 		
-		// made the bit length of data divisible by 64
+		// make sure the bit length of data is divisible by 64
 		if (pad_num != 64) {
 			StringBuilder data_add = new StringBuilder();
 			for (int i = 0; i < pad_num; i++) {
@@ -371,7 +494,10 @@ public class IDEA {
 		}
 		
 		// Display the data bit string to be encrypted/decrypted
-		System.out.printf("binary in: %s\n", data);
+		if (op.equalsIgnoreCase("hex") ||
+				op.equalsIgnoreCase("txt")) {
+			System.out.printf("binary in: %s\n", data);
+		}
 		
 		// Check if op is dec, if so decrypt 
 		if (op.equalsIgnoreCase("dec")) {
@@ -396,11 +522,12 @@ public class IDEA {
 			// gather the data
 			String data_block = data.substring(i*64, (i+1)*64);
 			long data_val = Long.parseUnsignedLong(data_block, 2);
+			BigInteger key_val = new BigInteger(key, 2);
 			
 			//System.out.printf("In long val: %d\n", data_val);
 			
 			// decrypt the data
-			IDEA_decrypt decrypt_block = new IDEA_decrypt(data_val, key);
+			IDEA_decrypt decrypt_block = new IDEA_decrypt(data_val, key_val);
 			long dec_val = decrypt_block.get_decrypted_text();
 			
 			//System.out.printf("Out long val: %d\n", dec_val);
@@ -427,11 +554,12 @@ public class IDEA {
 			// gather the data
 			String data_block = data.substring(i*64, (i+1)*64);
 			long data_val = Long.parseUnsignedLong(data_block, 2);
+			BigInteger key_val = new BigInteger(key, 2);
 			
 			//System.out.printf("In long val: %d\n", data_val);
 			
 			// encrypt the data
-			IDEA_encrypt encrypt_block = new IDEA_encrypt(data_val, key);
+			IDEA_encrypt encrypt_block = new IDEA_encrypt(data_val, key_val);
 			long enc_val = encrypt_block.get_cipher_text();
 			
 			//System.out.printf("Out long val: %d\n", enc_val);
@@ -446,29 +574,33 @@ public class IDEA {
 	}
 	
 	/**
-	 * 
+	 * Formats the output to match the input format
 	 */
 	public static void format_out() {
-		System.out.printf("binary out: %s\n", output);
+		// Display the data bit string to be encrypted/decrypted
+		if (op.equalsIgnoreCase("hex") ||
+				op.equalsIgnoreCase("txt")) {
+			System.out.printf("binary out: %s\n", output);
+		}
 		
-		if (format.equalsIgnoreCase("bin")) {
+		if (data_format.equalsIgnoreCase("bin")) {
 			output = output.trim();
 		}
-		if (format.equalsIgnoreCase("hex")) {
+		if (data_format.equalsIgnoreCase("hex")) {
 			StringBuilder out_str = new StringBuilder();
-			for (int i = 0; i < output.length() / 64; i++) {
-				String out_sub = output.substring(i*64, (i + 1)*64);
-				long out_val = Long.parseUnsignedLong(out_sub, 2);
+			for (int i = 0; i < output.length() / 4; i++) {
+				String out_sub = output.substring(i*4, (i + 1)*4);
+				Long out_val = Long.parseUnsignedLong(out_sub, 2);
 				String out_block = Long.toString(out_val, 16);
 				//System.out.printf("out_block: %s\n", out_block);
-				out_block = out_block.toUpperCase();
+				out_block = out_block.toLowerCase();
 				out_str.append(out_block);
 			}
 			output = out_str.toString();
 		}
-		if (format.equalsIgnoreCase("txt")) {	
+		if (data_format.equalsIgnoreCase("txt")) {	
 			StringBuilder out_str = new StringBuilder();
-			// byte is 8 bits, so iterate over 8-bit blocks
+			// encoding byte is 8 bits, so iterate over 8-bit blocks
 			for (int i = 0; i < output.length() / 8; i++) {
 				String bit_sub = output.substring(i*8, (i + 1)*8);
 				String str_sub = encodings.get_str(bit_sub);
@@ -477,24 +609,6 @@ public class IDEA {
 			output = out_str.toString();
  		}
 		System.out.printf("%srypted data: %s\n", op, output);
-	}
-	
-	/**
-	 * Check that that decrypting the encrypted data returns original data
-	 * 
-	 * @param plain_text: original data
-	 * @param decrypt_text: data obtained from decrypting the encrypted data
-	 * @return true if they are equal, false otherwise
-	 */
-	private static boolean decrypt_check(long plain_text, long decrypt_text) {
-		if (plain_text == decrypt_text) {
-			//System.out.printf("Success! Decrypted the original text");
-			return true;
-		}
-		else {
-			//System.out.print("Failure! Decrypted text is NOT original text");
-			return false;
-		}
 	}
 	
 	public static void main(String[] args) {
