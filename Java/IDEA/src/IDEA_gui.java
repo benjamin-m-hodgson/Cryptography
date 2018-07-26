@@ -1,3 +1,6 @@
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
@@ -86,11 +89,13 @@ public class IDEA_gui extends Application {
     		// TODO handle displaying key input error
     		System.out.printf("Error processing key input %n");
     	}
-    	if (!logic.processData(inputData)) {
+    	else if (!logic.processData(inputData)) {
     		// TODO handle displaying key input error
     		System.out.printf("Error processing data input %n");
     	}
-    	displayResult(logic.execute());
+    	else {
+    		displayResult(logic.execute());
+    	}
     }
     
     private void displayResult(String output) {

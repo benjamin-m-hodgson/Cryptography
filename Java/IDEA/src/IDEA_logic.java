@@ -1,4 +1,7 @@
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 
@@ -110,17 +113,24 @@ public class IDEA_logic {
 	public boolean processKey(String keyInput) {
 		// handle the binary input case
 		if (keyFormat.equalsIgnoreCase("bin")) {
+			if (!verifyBin(keyInput)) {
+				return false;
+			}
 			// no processing necessary
 			key = keyInput.replace(' ', '0');
 			// format the key with correct length
 			while (key.length() % 128 != 0) {
 				key = "0" + key;
 			}
+			
 
 			//System.out.printf("key in: %s\n", key);
 		}
 		// handle the hex input case
 		else if (keyFormat.equalsIgnoreCase("hex")) {
+			if (!verifyHex(keyInput)) {
+				return false;
+			}
 			// convert the input string to upper case 
 			key = keyInput.toUpperCase();
 			//System.out.printf("key in: %s\n", key);
@@ -149,7 +159,7 @@ public class IDEA_logic {
 			key = keyInput;
 			
 			// format the key with correct length 
-			while (key.length() % 16 != 0) {
+			while (key.length() % 16 != 0 || key.length() == 0) {
 				key = "0" + key;
 			}
 			//System.out.printf("key in: %s\n", key);
@@ -164,7 +174,7 @@ public class IDEA_logic {
 		}
 		else {
 			// TODO better error checking here
-			System.out.printf("Format error encountered");
+			System.out.printf("Format error encountered%n");
 			return false;
 		}
 
@@ -173,7 +183,8 @@ public class IDEA_logic {
 			key = key.substring(0, 128);
 		}
 		if (key.length() < 128) {
-			System.out.printf("Key should be 128 bits! Currently only %d\n", key.length());
+			System.out.printf("Key should be 128 bits! Currently only %d%n", key.length());
+			return false;
 		}
 		return true;
 	}
@@ -197,6 +208,9 @@ public class IDEA_logic {
 		
 		// handle the binary input case
 		if (dataFormat.equalsIgnoreCase("bin")) {
+			if (!verifyBin(inputData)) {
+				return false;
+			}
 			// no processing necessary
 			data = inputData.replace(' ', '0');
 			
@@ -209,6 +223,9 @@ public class IDEA_logic {
 		
 		// handle the hex input case
 		else if (dataFormat.equalsIgnoreCase("hex")) {
+			if (!verifyHex(inputData)) {
+				return false;
+			}
 			// convert the input string to lower case 
 			data = inputData.toLowerCase();
 			// format the data correctly
@@ -406,6 +423,31 @@ public class IDEA_logic {
 		}
 		return out_add.toString();
 	}
-
+	
+	private boolean verifyBin(String input) {
+		String[] charArray = input.split("(?!^)");
+		Set<String> charSet = new HashSet<String>(Arrays.asList(charArray));
+		for (String character : charSet) {
+			if (!character.equals("1") && !character.equals("0")) {
+				System.out.printf("Error on character: %s%n", character);
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private boolean verifyHex(String input) {
+		Set<String> hexSet = new HashSet<String>(Arrays.asList("A", "B", "C", "D", "E", "F",
+				"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"));
+		String[] charArray = input.split("(?!^)");
+		Set<String> charSet = new HashSet<String>(Arrays.asList(charArray));
+		for (String character : charSet) {
+			if (!hexSet.contains(character.toUpperCase())) {
+				System.out.printf("Error on character: %s%n", character);
+				return false;
+			}
+		}
+		return true;
+	}
 
 }
