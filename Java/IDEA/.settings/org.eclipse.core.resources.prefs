@@ -1,4 +1,7 @@
 eclipse.preferences.version=1
-encoding//src/IDEA.java=UTF-8
+encoding//src/IDEA_cli.java=UTF-8
 encoding//src/IDEA_encoding.java=UTF-8
+encoding//src/IDEA_gui.java=UTF-8
+encoding//src/IDEA_logic.java=UTF-8
+encoding//src/IDEA_scenes.java=UTF-8
 encoding/IDEA_text_encoding.txt=UTF-8
